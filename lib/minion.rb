@@ -6,7 +6,15 @@ require 'bunny'
 module Minion
 	extend self
 
-	def enqueue(queue, data)
+	def enqueue(jobs, data = {})
+		## jobs can be one or more jobs
+		if jobs.respond_to? :shift
+			queue = jobs.shift
+			data["next_job"] = jobs unless jobs.empty?
+		else
+			queue = jobs
+		end
+
 		log "send: #{queue}:#{data.to_json}"
 		bunny.queue(queue, :durable => true, :auto_delete => false).publish(data.to_json)
 	end
@@ -56,9 +64,12 @@ module Minion
 
 	private
 
+	def amqp_uri
+		ENV["AMQP_URI"] || "amqp://guest:guest@localhost/"
+	end
+
 	def amqp_config
-		uri = URI.parse(ENV["AMQP_URI"])
-		raise unless (uri.scheme == "rabbit" or uri.scheme == "amqp")
+		uri = URI.parse(amqp_uri)
 		{
 			:vhost => uri.path,
 			:host => uri.host,
@@ -92,12 +103,7 @@ module Minion
 	end
 
 	def next_job(args, response)
-		queue = if args["next_job"].respond_to? :shift
-			args["next_job"].shift
-		else
-			args.delete("next_job")
-		end
-
+		queue = args.delete("next_job")
 		enqueue(queue,args.merge(response)) if queue
 	end
 

@@ -1,3 +1,83 @@
 
 = Minion: super simple job queue over amqp
 
+Minion makes processing jobs over AMQP simple and easy.
+
+== Setup
+
+Minion pulls the AMQP credentials out the environment via AMQP_URI.
+
+	$ export AMQP_URI="amqp://johndoe:abc123@localhost/my_vhost"
+
+If no URI is supplied, Minion defaults to "amqp://guest:guest@localhost/" which
+is the default credentials for Rabbitmq running locally.
+
+== Principles
+
+Minion treats your jobs with respect.  The queues are durable and not
+autodelete.  When popping jobs off the queue, they will not receive an ack
+until the job is done.  You can rest assured that once queued, the job will not
+be lost.
+
+Sends are done synchronously and receives are done asynchronously.  This allows
+you to Minion.enqueue() from the console, or in a mongrel and you don't need to
+worry about eventmachine.  It also means that when enqueue returns, the AMQP
+server has received your message. Daemons set to receive messages however use
+eventmachine.
+
+Message processing is done one at a time (prefetch 1).  If you want tasks done
+in parallel, run two minions.
+
+== Push a job onto the queue
+
+Its easy to push a job onto the queue.
+
+	Minion.enqueue("make.sandwich", { "for" => "me", "with" => "bread" })
+
+Minion expects a queue name (and will create it if needed). The second argument
+needs to be a hash.  
+
+== Processing a job
+
+	require 'minion'
+
+	include Minion
+
+	job "make.sandwich" do |args|
+		Sandwich.make(args["for"],args["with"])
+	end
+
+== Chaining multiple steps
+
+If you have a task that requires more than one step just pass an array of
+queues when you enqueue.
+
+	Minion.enqueue([ "make.sandwich", "eat.sandwich" ], "for" => "me")
+
+	job "make.sandwich" do
+		## this return value is merged with for => me and sent to the next queue
+		{ "type" => "ham on rye" }  
+	end
+
+	job "eat.sandwich" do |args|
+		puts "I have #{args["type"]} sandwich for #{args["me"]}"
+	end
+
+== Error handling
+
+When an error is thrown in a job handler, the job is requeued to be done later
+and the minion process exits.  If you define an error handler, however, the
+error handler is run and the job is removed from the queue.
+
+	on_error do |e|
+		puts "got an error! #{e}"
+	end
+
+== Logging
+
+Minion logs to stdout via "puts".  You can specify a custom logger like this:
+
+	logger do |msg|
+		puts msg
+	end
+
