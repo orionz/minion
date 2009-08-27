@@ -85,12 +85,12 @@ module Minion
 
 	private
 
-	def amqp_uri
-		ENV["AMQP_URI"] || "amqp://guest:guest@localhost/"
+	def amqp_url
+		ENV["AMQP_URL"] || "amqp://guest:guest@localhost/"
 	end
 
 	def amqp_config
-		uri = URI.parse(amqp_uri)
+		uri = URI.parse(amqp_url)
 		{
 			:vhost => uri.path,
 			:host => uri.host,
@@ -99,7 +99,7 @@ module Minion
 			:pass => uri.password
 		}
 	rescue
-		raise "invalid AMQP_URI: #{uri.inspect}"
+		raise "invalid AMQP_URL: #{uri.inspect} (#{e})"
 	end
 
 	def new_bunny
