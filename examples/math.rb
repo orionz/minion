@@ -5,7 +5,7 @@ require 'minion'
 
 include Minion
 
-on_error do |e|
+error do |e|
 	puts "got an error!"
 end
 

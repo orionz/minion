@@ -2,6 +2,7 @@ require 'uri'
 require 'json'
 require 'mq'
 require 'bunny'
+require 'minion/handler'
 
 module Minion
 	extend self
@@ -19,7 +20,12 @@ module Minion
 		bunny.queue(queue, :durable => true, :auto_delete => false).publish(data.to_json)
 	end
 
-	def on_error(&blk)
+	def log(msg)
+		@@logger ||= proc { |m| puts "#{Time.now} :minion: #{m}" }
+		@@logger.call(msg)
+	end
+
+	def error(&blk)
 		@@error_handler = blk
 	end
 
@@ -27,8 +33,15 @@ module Minion
 		@@logger = blk
 	end
 
-	def job(queue, &blk)
-		handler do
+	def job(queue, options = {}, &blk)
+		handler = Minion::Handler.new queue
+		handler.when = options[:when] if options[:when]
+		handler.unsub = lambda do
+			log "unsubscribing to #{queue}"
+			MQ.queue(queue).unsubscribe
+		end
+		handler.sub = lambda do
+			log "subscribing to #{queue}"
 			MQ.queue(queue).subscribe(:ack => true) do |h,m|
 				return if AMQP.closing?
 				begin
@@ -44,8 +57,16 @@ module Minion
 					error_handler.call(e)
 				end
 				h.ack
+				check_all
 			end
 		end
+		@@handlers ||= []
+		at_exit { Minion.run } if @@handlers.size == 0
+		@@handlers << handler
+	end
+
+	def check_all
+		@@handlers.each { |h| h.check }
 	end
 
 	def run
@@ -57,7 +78,7 @@ module Minion
 		EM.run do
 			AMQP.start(amqp_config) do
 				MQ.prefetch(1)
-				@@handlers.each { |h| h.call }
+				check_all
 			end
 		end
 	end
@@ -89,17 +110,6 @@ module Minion
 
 	def bunny
 		@@bunny ||= new_bunny
-	end
-
-	def log(msg)
-		@@logger ||= proc { |m| puts "#{Time.now} :minion: #{m}" }
-		@@logger.call(msg)
-	end
-
-	def handler(&blk)
-		@@handlers ||= []
-		at_exit { Minion.run } if @@handlers.size == 0
-		@@handlers << blk
 	end
 
 	def next_job(args, response)
