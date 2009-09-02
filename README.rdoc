@@ -63,13 +63,24 @@ queues when you enqueue.
 		puts "I have #{args["type"]} sandwich for #{args["me"]}"
 	end
 
+== Conditional Processing
+
+If you want a minion worker to only subscribe to a queue under specific
+conditions there is a :when parameter that takes a lambda as an argument.  For
+example, if you had a queue that makes sandwiches but only if there is bread
+on hand, it would be.
+
+  job "make.sandwich", :when => lambda { not Bread.out? } do
+    Sandwich.make
+  end
+
 == Error handling
 
 When an error is thrown in a job handler, the job is requeued to be done later
 and the minion process exits.  If you define an error handler, however, the
 error handler is run and the job is removed from the queue.
 
-	on_error do |e|
+	error do |e|
 		puts "got an error! #{e}"
 	end
 

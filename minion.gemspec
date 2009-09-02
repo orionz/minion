@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{minion}
-  s.version = "0.1.3"
+  s.version = "0.1.4"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Orion Henry"]
-  s.date = %q{2009-08-19}
+  s.date = %q{2009-09-02}
   s.description = %q{Super simple job queue over AMQP}
   s.email = %q{orion@heroku.com}
   s.extra_rdoc_files = [
@@ -20,10 +20,10 @@ Gem::Specification.new do |s|
      "VERSION",
      "examples/math.rb",
      "examples/sandwich.rb",
+     "examples/when.rb",
      "lib/minion.rb",
      "lib/minion/handler.rb"
   ]
-  s.has_rdoc = true
   s.homepage = %q{http://github.com/orionz/minion}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
@@ -32,7 +32,8 @@ Gem::Specification.new do |s|
   s.summary = %q{Super simple job queue over AMQP}
   s.test_files = [
     "examples/math.rb",
-     "examples/sandwich.rb"
+     "examples/sandwich.rb",
+     "examples/when.rb"
   ]
 
   if s.respond_to? :specification_version then
