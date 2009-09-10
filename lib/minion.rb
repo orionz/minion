@@ -1,5 +1,5 @@
 require 'uri'
-require 'json'
+require 'json' unless defined? ActiveSupport
 require 'mq'
 require 'bunny'
 require 'minion/handler'
