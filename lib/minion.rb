@@ -47,7 +47,7 @@ module Minion
 				begin
 					log "recv: #{queue}:#{m}"
 
-					args = JSON.load(m)
+					args = decode_json(m)
 
 					result = yield(args)
 
@@ -63,6 +63,14 @@ module Minion
 		@@handlers ||= []
 		at_exit { Minion.run } if @@handlers.size == 0
 		@@handlers << handler
+	end
+
+	def decode_json(string)
+		if defined? ActiveSupport
+			ActiveSupport::JSON.decode string
+		else
+			JSON.load string
+		end
 	end
 
 	def check_all
