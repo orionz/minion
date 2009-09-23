@@ -5,11 +5,11 @@ Minion makes processing jobs over AMQP simple and easy.
 
 == Setup
 
-Minion pulls the AMQP credentials out the environment via AMQP_URI.
+Minion pulls the AMQP credentials out the environment via AMQP_URL.
 
-	$ export AMQP_URI="amqp://johndoe:abc123@localhost/my_vhost"
+	$ export AMQP_URL="amqp://johndoe:abc123@localhost/my_vhost"
 
-If no URI is supplied, Minion defaults to "amqp://guest:guest@localhost/" which
+If no URL is supplied, Minion defaults to "amqp://guest:guest@localhost/" which
 is the default credentials for Rabbitmq running locally.
 
 == Principles
