@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{minion}
-  s.version = "0.1.7"
+  s.version = "0.1.8"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Orion Henry"]
-  s.date = %q{2009-09-22}
+  s.date = %q{2009-10-19}
   s.description = %q{Super simple job queue over AMQP}
   s.email = %q{orion@heroku.com}
   s.extra_rdoc_files = [
@@ -28,7 +28,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{minion}
-  s.rubygems_version = %q{1.3.1}
+  s.rubygems_version = %q{1.3.5}
   s.summary = %q{Super simple job queue over AMQP}
   s.test_files = [
     "examples/math.rb",
@@ -38,19 +38,19 @@ Gem::Specification.new do |s|
 
   if s.respond_to? :specification_version then
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
-    s.specification_version = 2
+    s.specification_version = 3
 
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<tmm1-amqp>, [">= 0.6.4"])
+      s.add_runtime_dependency(%q<amqp>, [">= 0.6.0"])
       s.add_runtime_dependency(%q<json>, [">= 1.1.7"])
       s.add_runtime_dependency(%q<bunny>, [">= 0.5.2"])
     else
-      s.add_dependency(%q<tmm1-amqp>, [">= 0.6.4"])
+      s.add_dependency(%q<amqp>, [">= 0.6.0"])
       s.add_dependency(%q<json>, [">= 1.1.7"])
       s.add_dependency(%q<bunny>, [">= 0.5.2"])
     end
   else
-    s.add_dependency(%q<tmm1-amqp>, [">= 0.6.4"])
+    s.add_dependency(%q<amqp>, [">= 0.6.0"])
     s.add_dependency(%q<json>, [">= 1.1.7"])
     s.add_dependency(%q<bunny>, [">= 0.5.2"])
   end

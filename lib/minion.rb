@@ -54,7 +54,7 @@ module Minion
 					next_job(args, result)
 				rescue Object => e
 					raise unless error_handler
-					error_handler.call(e)
+					error_handler.call(e,queue,m,h)
 				end
 				h.ack
 				check_all
