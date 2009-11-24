@@ -66,7 +66,7 @@ module Minion
 	end
 
 	def decode_json(string)
-		if defined? ActiveSupport
+		if defined? ActiveSupport::JSON
 			ActiveSupport::JSON.decode string
 		else
 			JSON.load string
