@@ -92,3 +92,11 @@ Minion logs to stdout via "puts".  You can specify a custom logger like this:
 		puts msg
 	end
 
+== Meta
+
+Created by Orion Henry
+
+Patches contributed by Adam Wiggins, Kyle Drake
+
+Released under the MIT License: www.opensource.org/licenses/mit-license.php
+
