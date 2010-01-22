@@ -8,6 +8,9 @@ module Minion
 	extend self
 
 	def enqueue(jobs, data = {})
+		raise "cannot enqueue a nil job" if jobs.nil?
+		raise "cannot enqueue an empty job" if jobs.empty?
+
 		## jobs can be one or more jobs
 		if jobs.respond_to? :shift
 			queue = jobs.shift
@@ -122,7 +125,7 @@ module Minion
 
 	def next_job(args, response)
 		queue = args.delete("next_job")
-		enqueue(queue,args.merge(response)) if queue
+		enqueue(queue,args.merge(response)) unless queue.empty?
 	end
 
 	def error_handler
