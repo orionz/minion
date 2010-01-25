@@ -98,11 +98,15 @@ module Minion
 		end
 	end
 
-	private
-
 	def amqp_url
 		@@amqp_url ||= ENV["AMQP_URL"] || "amqp://guest:guest@localhost/"
 	end
+
+	def amqp_url=(url)
+		@@amqp_url = url
+	end
+
+	private
 
 	def amqp_config
 		uri = URI.parse(amqp_url)
