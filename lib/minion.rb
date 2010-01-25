@@ -7,6 +7,10 @@ require 'minion/handler'
 module Minion
 	extend self
 
+  def url=(url)
+    @@config_url = url
+  end
+
 	def enqueue(jobs, data = {})
 		raise "cannot enqueue a nil job" if jobs.nil?
 		raise "cannot enqueue an empty job" if jobs.empty?
@@ -97,7 +101,7 @@ module Minion
 	private
 
 	def amqp_url
-		ENV["AMQP_URL"] || "amqp://guest:guest@localhost/"
+		@@amqp_url ||= ENV["AMQP_URL"] || "amqp://guest:guest@localhost/"
 	end
 
 	def amqp_config
@@ -125,7 +129,7 @@ module Minion
 
 	def next_job(args, response)
 		queue = args.delete("next_job")
-		enqueue(queue,args.merge(response)) unless queue.empty?
+		enqueue(queue,args.merge(response)) unless queue.nil? or queue.empty?
 	end
 
 	def error_handler
