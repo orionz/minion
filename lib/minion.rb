@@ -133,7 +133,7 @@ module Minion
 
 	def next_job(args, response)
 		queue = args.delete("next_job")
-		enqueue(queue,args.merge(response)) unless queue.nil? or queue.empty?
+		enqueue(queue,args.merge(response)) if queue and not queue.empty?
 	end
 
 	def error_handler
