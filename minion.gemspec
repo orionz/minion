@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{minion}
-  s.version = "0.1.11"
+  s.version = "0.1.13"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Orion Henry"]
-  s.date = %q{2010-01-21}
+  s.date = %q{2010-01-27}
   s.description = %q{Super simple job queue over AMQP}
   s.email = %q{orion@heroku.com}
   s.extra_rdoc_files = [
