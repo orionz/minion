@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{minion}
-  s.version = "0.1.13"
+  s.version = "0.1.14"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Orion Henry"]
-  s.date = %q{2010-01-27}
+  s.date = %q{2010-07-27}
   s.description = %q{Super simple job queue over AMQP}
   s.email = %q{orion@heroku.com}
   s.extra_rdoc_files = [
@@ -28,7 +28,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubyforge_project = %q{minion}
-  s.rubygems_version = %q{1.3.5}
+  s.rubygems_version = %q{1.3.6}
   s.summary = %q{Super simple job queue over AMQP}
   s.test_files = [
     "spec/base.rb",

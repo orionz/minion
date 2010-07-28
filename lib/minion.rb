@@ -117,7 +117,7 @@ module Minion
 			:port => (uri.port || 5672),
 			:pass => uri.password
 		}
-	rescue
+	rescue Object => e
 		raise "invalid AMQP_URL: #{uri.inspect} (#{e})"
 	end
 
