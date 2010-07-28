@@ -7,9 +7,9 @@ require 'minion'
 include Minion
 
 error do |exception,queue,message,headers|
-  puts "got an error processing queue #{queue}"
-  puts exception.message
-  puts exception.backtrace
+	puts "got an error processing queue #{queue}"
+	puts exception.message
+	puts exception.backtrace
 end
 
 job "add.bread" do |args|
@@ -25,7 +25,7 @@ job "add.condiments" do |args|
 end
 
 job "eat.sandwich" do |args|
-	puts "YUM!  A #{args['meat']} on #{args['bread']} sandwich with #{args['condiments']}"
+	puts "YUM!	A #{args['meat']} on #{args['bread']} sandwich with #{args['condiments']}"
 end
 
 enqueue(["add.bread", "add.meat", "add.condiments", "eat.sandwich" ])

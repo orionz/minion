@@ -8,8 +8,8 @@ include Minion
 
 error do |exception,queue,message,headers|
 	puts "got an error processing queue #{queue}"
-  puts exception.message
-  puts exception.backtrace
+	puts exception.message
+	puts exception.backtrace
 end
 
 logger do |msg|

@@ -9,7 +9,7 @@ Jeweler::Tasks.new do |s|
   s.homepage = "http://github.com/orionz/minion"
   s.rubyforge_project = "minion"
   s.files = FileList["[A-Z]*", "{bin,lib,spec}/**/*"]
-  s.add_dependency "amqp", ">= 0.6.6"
+  s.add_dependency "amqp", ">= 0.6.7"
   s.add_dependency "bunny", ">= 0.6.0"
   s.add_dependency "json", ">= 1.2.0"
 end

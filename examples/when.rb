@@ -7,9 +7,9 @@ require 'minion'
 include Minion
 
 error do |exception,queue,message,headers|
-  puts "got an error processing queue #{queue}"
-  puts exception.message
-  puts exception.backtrace
+	puts "got an error processing queue #{queue}"
+	puts exception.message
+	puts exception.backtrace
 end
 
 logger do |msg|
@@ -18,7 +18,7 @@ end
 
 $listen = true
 
-job "do.once", :when => lambda { $listen }  do |args|
+job "do.once", :when => lambda { $listen } do |args|
 	puts "Do this one action - then unsubscribe..."
 	$listen = false
 end
