@@ -7,9 +7,9 @@ require 'minion/handler'
 module Minion
 	extend self
 
-  def url=(url)
-    @@config_url = url
-  end
+	def url=(url)
+		@@config_url = url
+	end
 
 	def enqueue(jobs, data = {})
 		raise "cannot enqueue a nil job" if jobs.nil?
@@ -23,8 +23,9 @@ module Minion
 			queue = jobs
 		end
 
-		log "send: #{queue}:#{data.to_json}"
-		bunny.queue(queue, :durable => true, :auto_delete => false).publish(data.to_json)
+		encoded = JSON.dump(data)
+		log "send: #{queue}:#{encoded}"
+		bunny.queue(queue, :durable => true, :auto_delete => false).publish(encoded)
 	end
 
 	def log(msg)
