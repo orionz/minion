@@ -88,6 +88,10 @@ module Minion
   # amqp connection
   attr_accessor :amqp
   
+  def error_handler
+    @@error_handler ||= nil
+  end
+  
   private
 
   # url-like config pasrser
@@ -120,8 +124,5 @@ module Minion
     enqueue(queue,args.merge(response)) if queue and not queue.empty?
   end
   
-  def error_handler
-    @@error_handler ||= nil
-  end
 end
 
