@@ -1,7 +1,7 @@
 require 'uri'
 require 'json' unless defined? ActiveSupport::JSON
-require 'mq'
 require 'bunny'
+require 'amqp'
 require 'minion/handler'
 
 module Minion
@@ -11,21 +11,16 @@ module Minion
 		@@config_url = url
 	end
 
+  # push message with json-encoded data to queue named as job
 	def enqueue(jobs, data = {})
 		raise "cannot enqueue a nil job" if jobs.nil?
 		raise "cannot enqueue an empty job" if jobs.empty?
 
-		## jobs can be one or more jobs
-		if jobs.respond_to? :shift
-			queue = jobs.shift
-			data["next_job"] = jobs unless jobs.empty?
-		else
-			queue = jobs
-		end
-
-		encoded = JSON.dump(data)
-		log "send: #{queue}:#{encoded}"
-		bunny.queue(queue, :durable => true, :auto_delete => false).publish(encoded)
+		encoded = found_json.generate(data)
+		
+		[jobs].flatten.each do |job|
+		  connect.queue(job, :durable => true, :auto_delete => false).publish(encoded)
+	  end
 	end
 
 	def log(msg)
@@ -42,63 +37,43 @@ module Minion
 	end
 
 	def job(queue, options = {}, &blk)
-		handler = Minion::Handler.new queue
+		handler = Minion::Handler.new(queue)
+		
 		handler.when = options[:when] if options[:when]
-		handler.unsub = lambda do
-			log "unsubscribing to #{queue}"
-			MQ.queue(queue, :durable => true, :auto_delete => false).unsubscribe
-		end
-		handler.sub = lambda do
-			log "subscribing to #{queue}"
-			MQ.queue(queue, :durable => true, :auto_delete => false).subscribe(:ack => true) do |h,m|
-				return if AMQP.closing?
-				begin
-					log "recv: #{queue}:#{m}"
-
-					args = decode_json(m)
-
-					result = yield(args)
-
-					next_job(args, result)
-				rescue Object => e
-					raise unless error_handler
-					error_handler.call(e,queue,m,h)
-				end
-				h.ack
-				check_all
-			end
-		end
+		handler.job = blk
+		
+		at_exit { Minion.run } unless defined?(@@handlers) # at first time
 		@@handlers ||= []
-		at_exit { Minion.run } if @@handlers.size == 0
 		@@handlers << handler
 	end
 
-	def decode_json(string)
-		if defined? ActiveSupport::JSON
-			ActiveSupport::JSON.decode string
-		else
-			JSON.load string
-		end
-	end
+  # returns json module, supporting active_support's json
+  def found_json
+    defined?(ActiveSupport::JSON) ? ActiveSupport::JSON : JSON
+  end
 
+  # check all job-hadlers
 	def check_all
 		@@handlers.each { |h| h.check }
 	end
 
+  # run amqp poll and initializes subscriptions
 	def run
 		log "Starting minion"
 
-		Signal.trap('INT') { AMQP.stop{ EM.stop } }
-		Signal.trap('TERM'){ AMQP.stop{ EM.stop } }
+		Signal.trap('INT') { AMQP.stop{ EM.stop { exit } } }
+		Signal.trap('TERM'){ AMQP.stop{ EM.stop { exit } } }
 
 		EM.run do
-			AMQP.start(amqp_config) do
-				MQ.prefetch(1)
+			AMQP.start(amqp_config) do |connection|
+			  self.amqp = connection
+			  AMQP::Channel.new(connection).prefetch(1)
 				check_all
 			end
 		end
 	end
 
+  
 	def amqp_url
 		@@amqp_url ||= ENV["AMQP_URL"] || "amqp://guest:guest@localhost/"
 	end
@@ -107,8 +82,12 @@ module Minion
 		@@amqp_url = url
 	end
 
+  # amqp connection
+  attr_accessor :amqp
+  
 	private
 
+  # url-like config pasrser
 	def amqp_config
 		uri = URI.parse(amqp_url)
 		{
@@ -122,21 +101,23 @@ module Minion
 		raise "invalid AMQP_URL: #{uri.inspect} (#{e})"
 	end
 
-	def new_bunny
-		b = Bunny.new(amqp_config)
-		b.start
-		b
+	def new_connect
+		Bunny.new(amqp_config).tap {|b| b.start }
 	end
 
-	def bunny
-		@@bunny ||= new_bunny
+  # banny connection
+	def connect
+		@@connect ||= new_connect
 	end
 
+  # I decided not to use queue of tasks stored like one job.
+  # It looks like queue in queue :) think it allows to make too diferent constructions
 	def next_job(args, response)
 		queue = args.delete("next_job")
 		enqueue(queue,args.merge(response)) if queue and not queue.empty?
 	end
 
+  
 	def error_handler
 		@@error_handler ||= nil
 	end

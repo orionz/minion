@@ -1,13 +1,41 @@
 module Minion
+  # simple class, what stores lambdas with job and channel subscription
+  
 	class Handler
-		attr_accessor :queue, :sub, :unsub, :when, :on
+		attr_accessor :queue, :when, :on, :channel, :job
+		
 		def initialize(queue)
 			@queue = queue
 			@when = lambda { true }
-			@sub = lambda {}
-			@unsub = lambda {}
+			@job = lambda {}
 			@on = false
 		end
+		
+		def unsub
+			Minion.log "unsubscribing to #{queue}"
+			channel.queue(queue, :durable => true, :auto_delete => false).unsubscribe
+		end
+
+    def sub
+			Minion.log "subscribing to #{queue}"
+			channel = AMQP::Channel.new(Minion.amqp)
+			
+			channel.queue(queue, :durable => true, :auto_delete => false).subscribe(:ack => true) do |h, message|
+				return if AMQP.closing?
+				begin
+				  
+					Minion.log "recv: #{queue}:#{message}"
+					args = Minion.found_json.parse(message)
+          job.call(args)
+          
+				rescue Object => e
+					raise unless Minion.error_handler
+					Minion.error_handler.call(e, queue, message, h)
+				end
+				h.ack
+				check_all
+			end
+    end
 
 		def should_sub?
 			@when.call
@@ -15,10 +43,10 @@ module Minion
 
 		def check
 			if should_sub?
-				@sub.call unless @on
+				sub unless @on
 				@on = true
 			else
-				@unsub.call if @on
+				unsub if @on
 				@on = false
 			end
 		end
