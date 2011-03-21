@@ -33,7 +33,7 @@ module Minion
 					Minion.error_handler.call(e, queue, message, h)
 				end
 				h.ack
-				check_all
+				Minion.check_all
 			end
     end
 
