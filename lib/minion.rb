@@ -5,47 +5,47 @@ require 'amqp'
 require 'minion/handler'
 
 module Minion
-	extend self
+  extend self
 
-	def url=(url)
-		@@config_url = url
-	end
+  def url=(url)
+    @@config_url = url
+  end
 
   # push message with json-encoded data to queue named as job
-	def enqueue(jobs, data = {})
-		raise "cannot enqueue a nil job" if jobs.nil?
-		raise "cannot enqueue an empty job" if jobs.empty?
+  def enqueue(jobs, data = {})
+    raise "cannot enqueue a nil job" if jobs.nil?
+    raise "cannot enqueue an empty job" if jobs.empty?
 
-		encoded = found_json.generate(data)
-		
-		[jobs].flatten.each do |job|
-		  connect.queue(job, :durable => true, :auto_delete => false).publish(encoded)
-	  end
-	end
+    encoded = found_json.generate(data)
+    
+    [jobs].flatten.each do |job|
+      connect.queue(job, :durable => true, :auto_delete => false).publish(encoded)
+    end
+  end
 
-	def log(msg)
-		@@logger ||= proc { |m| puts "#{Time.now} :minion: #{m}" }
-		@@logger.call(msg)
-	end
+  def log(msg)
+    @@logger ||= proc { |m| puts "#{Time.now} :minion: #{m}" }
+    @@logger.call(msg)
+  end
 
-	def error(&blk)
-		@@error_handler = blk
-	end
+  def error(&blk)
+    @@error_handler = blk
+  end
 
-	def logger(&blk)
-		@@logger = blk
-	end
+  def logger(&blk)
+    @@logger = blk
+  end
 
-	def job(queue, options = {}, &blk)
-		handler = Minion::Handler.new(queue)
-		
-		handler.when = options[:when] if options[:when]
-		handler.job = blk
-		
-		at_exit { Minion.run } unless defined?(@@handlers) # at first time
-		@@handlers ||= []
-		@@handlers << handler
-	end
+  def job(queue, options = {}, &blk)
+    handler = Minion::Handler.new(queue)
+    
+    handler.when = options[:when] if options[:when]
+    handler.job = blk
+    
+    at_exit { Minion.run } unless defined?(@@handlers) # at first time
+    @@handlers ||= []
+    @@handlers << handler
+  end
 
   # returns json module, supporting active_support's json
   def found_json
@@ -53,73 +53,72 @@ module Minion
   end
 
   # check all job-hadlers
-	def check_all
-		@@handlers.each { |h| h.check }
-	end
+  def check_all
+    @@handlers.each { |h| h.check }
+  end
 
   # run amqp poll and initializes subscriptions
-	def run
-		log "Starting minion"
+  def run
+    log "Starting minion"
 
-		Signal.trap('INT') { AMQP.stop{ EM.stop { exit } } }
-		Signal.trap('TERM'){ AMQP.stop{ EM.stop { exit } } }
+    Signal.trap('INT') { AMQP.stop{ EM.stop } }
+    Signal.trap('TERM'){ AMQP.stop{ EM.stop } }
 
-		EM.run do
-			AMQP.start(amqp_config) do |connection|
-			  self.amqp = connection
-			  AMQP::Channel.new(connection).prefetch(1)
-				check_all
-			end
-		end
-	end
+    EM.run do
+      AMQP.start(amqp_config) do |connection|
+        self.amqp = connection
+        AMQP::Channel.new(connection).prefetch(1)
+        check_all
+      end
+    end
+  end
 
   
-	def amqp_url
-		@@amqp_url ||= ENV["AMQP_URL"] || "amqp://guest:guest@localhost/"
-	end
+  def amqp_url
+    @@amqp_url ||= ENV["AMQP_URL"] || "amqp://guest:guest@localhost/"
+  end
 
-	def amqp_url=(url)
-		@@amqp_url = url
-	end
+  def amqp_url=(url)
+    @@amqp_url = url
+  end
 
   # amqp connection
   attr_accessor :amqp
   
-	private
+  private
 
   # url-like config pasrser
-	def amqp_config
-		uri = URI.parse(amqp_url)
-		{
-			:vhost => uri.path,
-			:host => uri.host,
-			:user => uri.user,
-			:port => (uri.port || 5672),
-			:pass => uri.password
-		}
-	rescue Object => e
-		raise "invalid AMQP_URL: #{uri.inspect} (#{e})"
-	end
+  def amqp_config
+    uri = URI.parse(amqp_url)
+    {
+      :vhost => uri.path,
+      :host => uri.host,
+      :user => uri.user,
+      :port => (uri.port || 5672),
+      :pass => uri.password
+    }
+  rescue Object => e
+    raise "invalid AMQP_URL: #{uri.inspect} (#{e})"
+  end
 
-	def new_connect
-		Bunny.new(amqp_config).tap {|b| b.start }
-	end
+  def new_connect
+    Bunny.new(amqp_config).tap {|b| b.start }
+  end
 
   # banny connection
-	def connect
-		@@connect ||= new_connect
-	end
+  def connect
+    @@connect ||= new_connect
+  end
 
   # I decided not to use queue of tasks stored like one job.
   # It looks like queue in queue :) think it allows to make too diferent constructions
-	def next_job(args, response)
-		queue = args.delete("next_job")
-		enqueue(queue,args.merge(response)) if queue and not queue.empty?
-	end
-
+  def next_job(args, response)
+    queue = args.delete("next_job")
+    enqueue(queue,args.merge(response)) if queue and not queue.empty?
+  end
   
-	def error_handler
-		@@error_handler ||= nil
-	end
+  def error_handler
+    @@error_handler ||= nil
+  end
 end
 
