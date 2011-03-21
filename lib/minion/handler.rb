@@ -25,7 +25,7 @@ module Minion
 				begin
 				  
 					Minion.log "recv: #{queue}:#{message}"
-					args = Minion.found_json.parse(message)
+					args = Minion.decode_json(message)
           job.call(args)
           
 				rescue Object => e

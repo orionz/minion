@@ -16,7 +16,7 @@ module Minion
     raise "cannot enqueue a nil job" if jobs.nil?
     raise "cannot enqueue an empty job" if jobs.empty?
 
-    encoded = found_json.generate(data)
+    encoded = encode_json(data)
     
     [jobs].flatten.each do |job|
       connect.queue(job, :durable => true, :auto_delete => false).publish(encoded)
@@ -47,9 +47,12 @@ module Minion
     @@handlers << handler
   end
 
-  # returns json module, supporting active_support's json
-  def found_json
-    defined?(ActiveSupport::JSON) ? ActiveSupport::JSON : JSON
+  def encode_json(data)
+    defined?(ActiveSupport::JSON) ? ActiveSupport::JSON.encode(data) : JSON.generate(data)
+  end
+  
+  def decode_json(string)
+    defined?(ActiveSupport::JSON) ? ActiveSupport::JSON.decode(string) : JSON.parses(string)
   end
 
   # check all job-hadlers

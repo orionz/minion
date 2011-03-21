@@ -3,6 +3,8 @@
 $:.unshift File.dirname(__FILE__) + '/../lib'
 require 'rubygems'
 require 'minion'
+require "active_support"
+
 
 include Minion
 
