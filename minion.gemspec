@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
   s.summary = %q{Super simple job queue over AMQP}
 
   s.extra_rdoc_files = [ "README.rdoc" ]
-  s.files = Dir.glob("lib/**/*") + %w(LICENSE README.rdoc Rakefile)
+  s.files = Dir.glob("lib/**/*") + %w(README.rdoc Rakefile)
   s.test_files = Dir.glob("spec/**/*") + Dir.glob("examples/*")
 
   s.add_runtime_dependency("amqp", [">= 0.7.1"])
