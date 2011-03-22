@@ -1,10 +1,21 @@
-require File.dirname(__FILE__) + '/base'
+require "spec_helper"
 
 describe Minion do
-	it "should throw an exception when passed a nil queue" do
-		lambda { Minion.enqueue(nil, {}) }.should.raise(RuntimeError)
-	end
-	it "should throw an exception when passed an empty queue" do
-		lambda { Minion.enqueue([], {}) }.should.raise(RuntimeError)
+
+  describe ".enqueue" do
+
+    context "when provided a nil queue" do
+
+      it "raises an error" do
+        expect { Minion.enqueue(nil, {}) }.to raise_error(RuntimeError)
+      end
+    end
+
+    context "when passed an empty queue" do
+
+      it "raises an error" do
+        expect { Minion.enqueue([], {}) }.to raise_error(RuntimeError)
+      end
+    end
   end
 end
