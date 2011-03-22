@@ -1,6 +1,6 @@
 require 'uri'
 require 'json' unless defined? ActiveSupport::JSON
-require 'mq'
+require 'amqp'
 require 'bunny'
 require 'minion/handler'
 require 'minion/version'

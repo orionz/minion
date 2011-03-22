@@ -11,10 +11,13 @@ describe Minion do
       end
     end
 
-    context "when passed an empty queue" do
+    context "when passed an array" do
 
-      it "raises an error" do
-        expect { Minion.enqueue([], {}) }.to raise_error(RuntimeError)
+      context "when the array is empty" do
+
+        it "raises an error" do
+          expect { Minion.enqueue([], {}) }.to raise_error(RuntimeError)
+        end
       end
     end
   end
