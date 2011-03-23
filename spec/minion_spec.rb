@@ -10,6 +10,41 @@ describe Minion do
     Minion.logger {}
   end
 
+  describe ".alert" do
+
+    context "when an error handler is provided" do
+
+      let(:error) do
+        RuntimeError.new("testing")
+      end
+
+      before do
+        Minion.error do |error|
+          error.message
+        end
+      end
+
+      after do
+        Minion.error
+      end
+
+      it "delegates to the handler" do
+        Minion.alert(error).should == "testing"
+      end
+    end
+
+    context "when an error handler is not provided" do
+
+      let(:error) do
+        RuntimeError.new("testing")
+      end
+
+      it "raises the error" do
+        expect { Minion.alert(error) }.to raise_error(RuntimeError)
+      end
+    end
+  end
+
   describe ".enqueue" do
 
     let(:queue) do
@@ -140,6 +175,36 @@ describe Minion do
           third_message.should == data
         end
       end
+    end
+  end
+
+  describe ".error" do
+
+    let(:block) do
+      -> { "testing" }
+    end
+
+    before do
+      Minion.error(&block)
+    end
+
+    it "sets the error handling to the provided block" do
+      Minion.send(:error_handling).should == block
+    end
+  end
+
+  describe ".info" do
+
+    let(:block) do
+      ->(message) { message }
+    end
+
+    before do
+      Minion.logger(&block)
+    end
+
+    it "delegates the logging to the provided block" do
+      Minion.info("testing").should == "testing"
     end
   end
 end
