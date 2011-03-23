@@ -53,7 +53,7 @@ module Minion
   #
   # @param [ Proc ] block The block that will handle the error.
   def error(&block)
-    @error_handling = block
+    @@error_handling = block
   end
 
   # Log the supplied information message.
@@ -82,11 +82,11 @@ module Minion
     handler.when = options[:when] if options[:when]
     handler.unsub = -> {
       info("unsubscribing to #{queue}")
-      AMQP::Channel.queue(queue, durable: true, auto_delete: false).unsubscribe
+      AMQP::Channel.new.queue(queue, durable: true, auto_delete: false).unsubscribe
     }
     handler.sub = -> {
       info("subscribing to #{queue}")
-      AMQP::Channel.queue(
+      AMQP::Channel.new.queue(
         queue,
         durable: true,
         auto_delete: false
@@ -102,9 +102,9 @@ module Minion
         check_handlers
       end
     }
-    @handlers ||= []
-    at_exit { Minion.run } if @handlers.size == 0
-    @handlers << handler
+    @@handlers ||= []
+    at_exit { Minion.run } if @@handlers.size == 0
+    @@handlers << handler
   end
 
   # Define an optional method of changing the ways logging is handled.
@@ -116,7 +116,7 @@ module Minion
   #
   # @param [ Proc ] block The block that will handle the logging.
   def logger(&block)
-    @logging = block
+    @@logging = block
   end
 
   # Runs the minion subscribers.
@@ -130,7 +130,7 @@ module Minion
 
     EM.run do
       AMQP.start(config) do
-        MQ.prefetch(1)
+        AMQP::Channel.new.prefetch(1)
         check_handlers
       end
     end
@@ -143,7 +143,7 @@ module Minion
   #
   # @return [ String ] The url.
   def url
-    @url ||= (ENV["AMQP_URL"] || "amqp://guest:guest@localhost/")
+    @@url ||= (ENV["AMQP_URL"] || "amqp://guest:guest@localhost/")
   end
 
   # Set the url to the amqp server.
@@ -153,7 +153,7 @@ module Minion
   #
   # @return [ String ] The new url.
   def url=(url)
-    @url = url
+    @@url = url
   end
 
   private
@@ -165,7 +165,7 @@ module Minion
   #
   # @return [ Bunny ] The new bunny, all configured.
   def bunny
-    @bunny ||= Bunny.new(config).tap { |b| b.start }
+    @@bunny ||= Bunny.new(config).tap { |b| b.start }
   end
 
   # Gets the hash of configuration options.
@@ -205,7 +205,7 @@ module Minion
   # @example Check all handlers.
   #   Minion.check_handlers
   def check_handlers
-    @handlers.each { |handler| handler.check }
+    @@handlers.each { |handler| handler.check }
   end
 
   # Get the error handler for this class.
@@ -215,7 +215,7 @@ module Minion
   #
   # @return [ lambda, nil ] The handler or nil.
   def error_handling
-    @error_handling
+    @@error_handling
   end
 
   # Get the logger for this class. If nothing had been specified will default
@@ -226,7 +226,7 @@ module Minion
   #
   # @return [ lambda ] The logger.
   def logging
-    @logging ||= ->(msg) { puts("#{Time.now} :minion: #{msg}") }
+    @@logging ||= ->(msg) { puts("#{Time.now} :minion: #{msg}") }
   end
 end
 
