@@ -8,24 +8,32 @@ require 'minion/version'
 module Minion
   extend self
 
-  def url=(url)
-    @@config_url = url
-  end
+  # Add data to the supplied queue or queues. The hash will get converted to
+  # JSON and placed on the queue as the JSON string.
+  #
+  # @example Place data on a single queue.
+  #   Minion.enqueue("queue.name", { field: "value" })
+  #
+  # @example Place data on multiple queues.
+  #   Minion.enqueue([ "queue.first", "queue.second" ], { field: "value" })
+  #
+  # @param [ String, Array<String> ] name The name or names of the queues.
+  # @param [ Hash ] data The payload to send.
+  #
+  # @raise [ RuntimeError ] If the name is nil or empty.
+  def enqueue(name, data = nil)
+    raise "cannot enqueue an empty or nil name" if name.nil? || name.empty?
+    data ||= {}
 
-  def enqueue(jobs, data = {})
-    raise "cannot enqueue a nil job" if jobs.nil?
-    raise "cannot enqueue an empty job" if jobs.empty?
-
-    ## jobs can be one or more jobs
-    if jobs.respond_to? :shift
-      queue = jobs.shift
-      data["next_job"] = jobs unless jobs.empty?
+    if name.respond_to?(:shift)
+      queue = name.shift
+      data["next_job"] = name unless name.empty?
     else
-      queue = jobs
+      queue = name
     end
 
     encoded = JSON.dump(data)
-    log "send: #{queue}:#{encoded}"
+    log("send: #{queue}:#{encoded}")
     bunny.queue(queue, :durable => true, :auto_delete => false).publish(encoded)
   end
 
@@ -72,7 +80,7 @@ module Minion
     @@handlers ||= []
     at_exit { Minion.run } if @@handlers.size == 0
     @@handlers << handler
-    end
+  end
 
   def decode_json(string)
     if defined? ActiveSupport::JSON
@@ -108,6 +116,10 @@ module Minion
     @@amqp_url = url
   end
 
+  def url=(url)
+    @@config_url = url
+  end
+
   private
 
   def amqp_config
@@ -123,14 +135,8 @@ module Minion
     raise "invalid AMQP_URL: #{uri.inspect} (#{e})"
   end
 
-  def new_bunny
-    b = Bunny.new(amqp_config)
-    b.start
-    b
-  end
-
   def bunny
-    @@bunny ||= new_bunny
+    @@bunny ||= Bunny.new(amqp_config).tap { |b| b.start }
   end
 
   def next_job(args, response)
