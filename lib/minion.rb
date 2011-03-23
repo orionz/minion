@@ -23,9 +23,7 @@ module Minion
   # @raise [ RuntimeError ] If the name is nil or empty.
   def enqueue(name, data = nil)
     raise "cannot enqueue an empty or nil name" if name.nil? || name.empty?
-    data ||= {}
-
-    encoded = JSON.dump(data)
+    encoded = JSON.dump(data || {})
 
     [ name ].flatten.each do |queue|
       log("send: #{queue}:#{encoded}")
