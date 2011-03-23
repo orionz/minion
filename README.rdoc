@@ -7,11 +7,11 @@ Minion makes processing jobs over AMQP simple and easy.
 
 Minion pulls the AMQP credentials out the environment via AMQP_URL.
 
-	$ export AMQP_URL="amqp://johndoe:abc123@localhost/my_vhost"
+$ export AMQP_URL="amqp://johndoe:abc123@localhost/my_vhost"
 
 Alternativly you can explicitly set it programmatically like this:
 
-  Minion.amqp_url = "amqp://johndoe:abc123@localhost/my_vhost"
+Minion.amqp_url = "amqp://johndoe:abc123@localhost/my_vhost"
 
 If no URL is supplied, Minion defaults to "amqp://guest:guest@localhost/" which
 is the default credentials for Rabbitmq running locally.
@@ -36,36 +36,36 @@ in parallel, run two minions.
 
 Its easy to push a job onto the queue.
 
-	Minion.enqueue("make.sandwich", { "for" => "me", "with" => "bread" })
+Minion.enqueue("make.sandwich", { "for" => "me", "with" => "bread" })
 
 Minion expects a queue name (and will create it if needed). The second argument
 needs to be a hash.  
 
 == Processing a job
 
-	require 'minion'
+require 'minion'
 
-	include Minion
+include Minion
 
-	job "make.sandwich" do |args|
-		Sandwich.make(args["for"],args["with"])
-	end
+job "make.sandwich" do |args|
+Sandwich.make(args["for"],args["with"])
+end
 
 == Chaining multiple steps
 
 If you have a task that requires more than one step just pass an array of
 queues when you enqueue.
 
-	Minion.enqueue([ "make.sandwich", "eat.sandwich" ], "for" => "me")
+Minion.enqueue([ "make.sandwich", "eat.sandwich" ], "for" => "me")
 
-	job "make.sandwich" do
-		## this return value is merged with for => me and sent to the next queue
-		{ "type" => "ham on rye" }  
-	end
+job "make.sandwich" do
+## this return value is merged with for => me and sent to the next queue
+{ "type" => "ham on rye" }  
+end
 
-	job "eat.sandwich" do |args|
-		puts "I have #{args["type"]} sandwich for #{args["me"]}"
-	end
+job "eat.sandwich" do |args|
+puts "I have #{args["type"]} sandwich for #{args["me"]}"
+end
 
 == Conditional Processing
 
@@ -74,9 +74,9 @@ conditions there is a :when parameter that takes a lambda as an argument.  For
 example, if you had a queue that makes sandwiches but only if there is bread
 on hand, it would be.
 
-  job "make.sandwich", :when => lambda { not Bread.out? } do
-    Sandwich.make
-  end
+job "make.sandwich", :when => lambda { not Bread.out? } do
+Sandwich.make
+end
 
 == Error handling
 
@@ -84,17 +84,22 @@ When an error is thrown in a job handler, the job is requeued to be done later
 and the minion process exits.  If you define an error handler, however, the
 error handler is run and the job is removed from the queue.
 
-	error do |e|
-		puts "got an error! #{e}"
-	end
+error do |e|
+puts "got an error! #{e}"
+end
 
 == Logging
 
 Minion logs to stdout via "puts".  You can specify a custom logger like this:
 
-	logger do |msg|
-		puts msg
-	end
+logger do |msg|
+puts msg
+end
+
+== Testing
+
+When running the Minion test suite you will need to have a RabbitMQ instance
+running locally with the default admin user "guest" still intact.
 
 == Meta
 
