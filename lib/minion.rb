@@ -119,6 +119,23 @@ module Minion
     @logging = block
   end
 
+  # Runs the minion subscribers.
+  #
+  # @example Run the subscribers.
+  #   Minion.run
+  def run
+    info("Starting minion")
+    Signal.trap("INT") { AMQP.stop { EM.stop } }
+    Signal.trap("TERM") { AMQP.stop { EM.stop } }
+
+    EM.run do
+      AMQP.start(amqp_config) do
+        MQ.prefetch(1)
+        check_handlers
+      end
+    end
+  end
+
   # Get the url for the amqp server.
   #
   # @example Get the url.
@@ -210,23 +227,6 @@ module Minion
   # @return [ lambda ] The logger.
   def logging
     @logging ||= ->(msg) { puts("#{Time.now} :minion: #{msg}") }
-  end
-
-  # Runs the minion subscribers.
-  #
-  # @example Run the subscribers.
-  #   Minion.run
-  def run
-    info("Starting minion")
-    Signal.trap("INT") { AMQP.stop { EM.stop } }
-    Signal.trap("TERM") { AMQP.stop { EM.stop } }
-
-    EM.run do
-      AMQP.start(amqp_config) do
-        MQ.prefetch(1)
-        check_handlers
-      end
-    end
   end
 end
 

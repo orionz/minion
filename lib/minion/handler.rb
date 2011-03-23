@@ -7,11 +7,11 @@ module Minion
       @sub = lambda {}
       @unsub = lambda {}
       @on = false
-      end
+    end
 
     def should_sub?
       @when.call
-      end
+    end
 
     def check
       if should_sub?
