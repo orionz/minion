@@ -25,16 +25,12 @@ module Minion
     raise "cannot enqueue an empty or nil name" if name.nil? || name.empty?
     data ||= {}
 
-    if name.respond_to?(:shift)
-      queue = name.shift
-      data["next_job"] = name unless name.empty?
-    else
-      queue = name
-    end
-
     encoded = JSON.dump(data)
-    log("send: #{queue}:#{encoded}")
-    bunny.queue(queue, :durable => true, :auto_delete => false).publish(encoded)
+
+    [ name ].flatten.each do |queue|
+      log("send: #{queue}:#{encoded}")
+      bunny.queue(queue, :durable => true, :auto_delete => false).publish(encoded)
+    end
   end
 
   def log(msg)
@@ -63,12 +59,8 @@ module Minion
         return if AMQP.closing?
         begin
           log "recv: #{queue}:#{m}"
-
           args = decode_json(m)
-
           result = yield(args)
-
-          next_job(args, result)
         rescue Object => e
           raise unless error_handler
           error_handler.call(e,queue,m,h)
@@ -137,11 +129,6 @@ module Minion
 
   def bunny
     @@bunny ||= Bunny.new(amqp_config).tap { |b| b.start }
-  end
-
-  def next_job(args, response)
-    queue = args.delete("next_job")
-    enqueue(queue,args.merge(response)) if queue and not queue.empty?
   end
 
   def error_handler

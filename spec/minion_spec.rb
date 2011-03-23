@@ -89,9 +89,14 @@ describe Minion do
         bunny.queue("minion.second")
       end
 
+      let(:third) do
+        bunny.queue("minion.third")
+      end
+
       before do
         first.purge
         second.purge
+        third.purge
       end
 
       context "when the array is empty" do
@@ -108,19 +113,31 @@ describe Minion do
         end
 
         before do
-          Minion.enqueue([ "minion.first", "minion.second" ], data)
+          Minion.enqueue([ "minion.first", "minion.second", "minion.third" ], data)
         end
 
-        let(:message) do
+        let(:first_message) do
           JSON.parse(first.pop[:payload])
         end
 
-        it "adds the data to the queue" do
-          message.should == data
+        let(:second_message) do
+          JSON.parse(second.pop[:payload])
         end
 
-        it "adds the next job data" do
-          message["next_job"].should == [ "minion.second" ]
+        let(:third_message) do
+          JSON.parse(third.pop[:payload])
+        end
+
+        it "adds the data to the first queue" do
+          first_message.should == data
+        end
+
+        it "adds the data to the second queue" do
+          second_message.should == data
+        end
+
+        it "adds the data to the third queue" do
+          third_message.should == data
         end
       end
     end
