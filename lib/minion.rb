@@ -129,7 +129,7 @@ module Minion
     Signal.trap("TERM") { AMQP.stop { EM.stop } }
 
     EM.run do
-      AMQP.start(amqp_config) do
+      AMQP.start(config) do
         MQ.prefetch(1)
         check_handlers
       end
