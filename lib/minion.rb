@@ -215,7 +215,7 @@ module Minion
   #
   # @return [ lambda, nil ] The handler or nil.
   def error_handling
-    @@error_handling
+    @@error_handling ||= nil
   end
 
   # Get the logger for this class. If nothing had been specified will default

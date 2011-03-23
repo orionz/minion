@@ -178,6 +178,17 @@ describe Minion do
     end
   end
 
+
+  describe ".error_handling" do
+
+    context "when nothing has been defined" do
+
+      it "returns nil" do
+        Minion.send(:error_handling).should be_nil
+      end
+    end
+  end
+
   describe ".error" do
 
     let(:block) do
