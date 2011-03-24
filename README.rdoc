@@ -16,7 +16,7 @@ Alternativly you can explicitly set it programmatically like this:
 If no URL is supplied, Minion defaults to "amqp://guest:guest@localhost/" which
 is the default credentials for Rabbitmq running locally.
 
-For Rails
+== For Rails
 
 * add minion to Gemfile
 
