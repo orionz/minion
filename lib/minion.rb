@@ -1,3 +1,4 @@
+# encoding: utf-8
 require "amqp"
 require "bunny"
 require "json" unless defined? ActiveSupport::JSON
@@ -35,11 +36,11 @@ module Minion
   #
   # @raise [ RuntimeError ] If the name is nil or empty.
   def enqueue(name, data = nil)
-    raise "cannot enqueue an empty or nil name" if name.nil? || name.empty?
+    raise "Cannot enqueue an empty or nil name" if name.nil? || name.empty?
     encoded = JSON.dump(data || {})
 
     [ name ].flatten.each do |queue|
-      info("send: #{queue}:#{encoded}")
+      Minion.info("Send: #{queue}:#{encoded}")
       bunny.queue(queue, durable: true, auto_delete: false).publish(encoded)
     end
   end
@@ -54,6 +55,14 @@ module Minion
   # @param [ Proc ] block The block that will handle the error.
   def error(&block)
     @@error_handling = block
+  end
+
+  # Runs each of the handlers.
+  #
+  # @example Check all handlers.
+  #   Minion.check_handlers
+  def execute_handlers
+    @@handlers.each { |handler| handler.execute }
   end
 
   # Log the supplied information message.
@@ -78,33 +87,11 @@ module Minion
   #
   # @option options [ lambda ] :when Conditionally process the job.
   def job(queue, options = {}, &block)
-    handler = Minion::Handler.new(queue)
-    handler.when = options[:when] if options[:when]
-    handler.unsub = -> {
-      info("unsubscribing to #{queue}")
-      AMQP::Channel.new.queue(queue, durable: true, auto_delete: false).unsubscribe
-    }
-    handler.sub = -> {
-      info("subscribing to #{queue}")
-      AMQP::Channel.new.queue(
-        queue,
-        durable: true,
-        auto_delete: false
-      ).subscribe(ack: true) do |header, message|
-        return if AMQP.closing?
-        begin
-          info("recv: #{queue}:#{message}")
-          result = block.call(decode(message))
-        rescue Object => e
-          alert(e)
-        end
-        header.ack
-        check_handlers
-      end
-    }
-    @@handlers ||= []
-    at_exit { Minion.run } if @@handlers.size == 0
-    @@handlers << handler
+    Minion::Handler.new(queue, block, options[:when]).tap do |handler|
+      @@handlers ||= []
+      at_exit { Minion.run } if @@handlers.size == 0
+      @@handlers << handler
+    end
   end
 
   # Define an optional method of changing the ways logging is handled.
@@ -124,14 +111,14 @@ module Minion
   # @example Run the subscribers.
   #   Minion.run
   def run
-    info("Starting minion")
+    Minion.info("Starting minion")
     Signal.trap("INT") { AMQP.stop { EM.stop } }
     Signal.trap("TERM") { AMQP.stop { EM.stop } }
 
     EM.run do
       AMQP.start(config) do
         AMQP::Channel.new.prefetch(1)
-        check_handlers
+        execute_handlers
       end
     end
   end
@@ -185,27 +172,6 @@ module Minion
     }
   rescue Object => e
     raise("invalid AMQP_URL: #{uri.inspect} (#{e})")
-  end
-
-  # Decode the json string into a hash.
-  #
-  # @example Decode the json.
-  #   Minion.decode_json("{ field : "value" }")
-  #
-  # @param [ String ] json The json string.
-  #
-  # @return [ Hash ] The json as a hash.
-  def decode(json)
-    defined?(ActiveSupport::JSON) ?
-      ActiveSupport::JSON.decode(json) : JSON.load(json)
-  end
-
-  # Checks each of the handlers.
-  #
-  # @example Check all handlers.
-  #   Minion.check_handlers
-  def check_handlers
-    @@handlers.each { |handler| handler.check }
   end
 
   # Get the error handler for this class.
