@@ -8,6 +8,8 @@ require 'minion/daemon'
 module Minion
   extend self
 
+  @@handlers = []
+  
   def url=(url)
     @@config_url = url
   end
@@ -43,9 +45,14 @@ module Minion
     handler.when = options[:when] if options[:when]
     handler.job = blk
     
-    at_exit { Minion.run } unless defined?(@@handlers) # at first time
-    @@handlers ||= []
+    init_at_exit
     @@handlers << handler
+    handler
+  end
+
+  # run once
+  def init_at_exit
+    @@init_at_exit ||= at_exit { Minion.run }
   end
 
   def encode_json(data)
@@ -74,6 +81,8 @@ module Minion
         AMQP::Channel.new(connection).prefetch(1)
         check_all
       end
+      
+      @@evented && @@evented.call
     end
   end
 
@@ -91,6 +100,14 @@ module Minion
   
   def error_handler
     @@error_handler ||= nil
+  end
+  
+  def handlers
+    @@handlers
+  end
+  
+  def evented(&blk)
+    @@evented = blk
   end
   
   private
