@@ -53,7 +53,7 @@ module Minion
   end
   
   def decode_json(string)
-    defined?(ActiveSupport::JSON) ? ActiveSupport::JSON.decode(string) : JSON.parses(string)
+    defined?(ActiveSupport::JSON) ? ActiveSupport::JSON.decode(string) : JSON.parse(string)
   end
 
   # check all job-hadlers
