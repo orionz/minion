@@ -3,7 +3,9 @@ require "spec_helper"
 describe Minion do
 
   let(:bunny) do
-    Minion.send(:bunny)
+    Bunny.new(Minion.config).tap do |bunny|
+      bunny.start
+    end
   end
 
   before(:all) do
@@ -48,7 +50,7 @@ describe Minion do
   describe ".enqueue" do
 
     let(:queue) do
-      bunny.queue("minion.test")
+      bunny.queue("minion.test", durable: true, auto_delete: false)
     end
 
     before do
@@ -117,15 +119,15 @@ describe Minion do
     context "when passed an array" do
 
       let(:first) do
-        bunny.queue("minion.first")
+        bunny.queue("minion.first", durable: true, auto_delete: false)
       end
 
       let(:second) do
-        bunny.queue("minion.second")
+        bunny.queue("minion.second", durable: true, auto_delete: false)
       end
 
       let(:third) do
-        bunny.queue("minion.third")
+        bunny.queue("minion.third", durable: true, auto_delete: false)
       end
 
       before do

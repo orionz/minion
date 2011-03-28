@@ -22,6 +22,25 @@ module Minion
     error_handling.call(exception)
   end
 
+  # Gets the hash of configuration options.
+  #
+  # @example Get the configuration hash.
+  #   Minion.config
+  #
+  # @return [ Hash ] The configuration options.
+  def config
+    uri = URI.parse(url)
+    {
+      vhost: uri.path,
+      host: uri.host,
+      user: uri.user,
+      port: (uri.port || 5672),
+      pass: uri.password
+    }
+  rescue Object => e
+    raise("invalid AMQP_URL: #{uri.inspect} (#{e})")
+  end
+
   # Add data to the supplied queue or queues. The hash will get converted to
   # JSON and placed on the queue as the JSON string.
   #
@@ -41,7 +60,9 @@ module Minion
 
     [ name ].flatten.each do |queue|
       Minion.info("Send: #{queue}:#{encoded}")
-      bunny.queue(queue, durable: true, auto_delete: false).publish(encoded)
+      connect do |bunny|
+        bunny.queue(queue, durable: true, auto_delete: false).publish(encoded)
+      end
     end
   end
 
@@ -151,27 +172,12 @@ module Minion
   #   Minion.bunny
   #
   # @return [ Bunny ] The new bunny, all configured.
-  def bunny
-    @@bunny ||= Bunny.new(config).tap { |b| b.start }
-  end
-
-  # Gets the hash of configuration options.
-  #
-  # @example Get the configuration hash.
-  #   Minion.config
-  #
-  # @return [ Hash ] The configuration options.
-  def config
-    uri = URI.parse(url)
-    {
-      vhost: uri.path,
-      host: uri.host,
-      user: uri.user,
-      port: (uri.port || 5672),
-      pass: uri.password
-    }
-  rescue Object => e
-    raise("invalid AMQP_URL: #{uri.inspect} (#{e})")
+  def connect
+    Bunny.new(config).tap do |bunny|
+      bunny.start
+      yield(bunny) if block_given?
+      bunny.stop
+    end
   end
 
   # Get the error handler for this class.
