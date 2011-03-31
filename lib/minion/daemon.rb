@@ -59,7 +59,7 @@ module Minion
     def write_logs(number)
       $stdin.close()
       if log
-        $stdout.reopen(file_for(:log, number) + '.log', "a")
+        $stdout.reopen(File.join(Dir.pwd, log), "a")
         $stdout.sync = true
         $stderr.reopen($stdout)
         #$stderr.reopen(file_for(:log, number) + '.err', "w")
