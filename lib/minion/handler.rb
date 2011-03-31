@@ -26,7 +26,7 @@ module Minion
       Minion.log "subscribing to #{queue}"
       channel = AMQP::Channel.new(Minion.amqp)
       
-      channel.queue(queue, :durable => true, :auto_delete => false).subscribe(:ack => true) do |h, message|
+      channel.queue(queue, :durable => true, :auto_delete => false).subscribe do |h, message|
         return if AMQP.closing?
         begin
           
@@ -35,10 +35,10 @@ module Minion
           job.call(args)
           
         rescue Object => e
+          Minion.enqueue(queue, Minion.decode_json(message))
           raise unless Minion.error_handler
           Minion.error_handler.call(e, queue, message, h)
         end
-        h.ack
       end
       
       @working = true

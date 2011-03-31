@@ -9,6 +9,7 @@ module Minion
   extend self
 
   @@handlers = []
+  @@evented  = []
   
   def url=(url)
     @@config_url = url
@@ -82,7 +83,7 @@ module Minion
         check_all
       end
       
-      @@evented && @@evented.call
+      @@evented.map(&:call)
     end
   end
 
@@ -107,7 +108,7 @@ module Minion
   end
   
   def evented(&blk)
-    @@evented = blk
+    @@evented << blk
   end
   
   private
