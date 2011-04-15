@@ -1,3 +1,4 @@
+# encoding: utf-8
 require "spec_helper"
 
 describe Minion do
@@ -91,20 +92,42 @@ describe Minion do
 
       context "when data is provided" do
 
-        let(:data) do
-          { "field" => "value" }
+        context "when the data has no special characters" do
+
+          let(:data) do
+            { "field" => "value" }
+          end
+
+          before do
+            Minion.enqueue("minion.test", data)
+          end
+
+          let(:message) do
+            JSON.parse(queue.pop[:payload])
+          end
+
+          it "adds the json to the queue" do
+            message.should == data
+          end
         end
 
-        before do
-          Minion.enqueue("minion.test", data)
-        end
+        context "when the data contains special characters" do
 
-        let(:message) do
-          JSON.parse(queue.pop[:payload])
-        end
+          let(:data) do
+            { "field" => "öüäßÖÜÄ" }
+          end
 
-        it "adds the json to the queue" do
-          message.should == data
+          before do
+            Minion.enqueue("minion.test", data)
+          end
+
+          let(:message) do
+            JSON.parse(queue.pop[:payload])
+          end
+
+          it "adds the json to the queue" do
+            message.should == data
+          end
         end
       end
     end

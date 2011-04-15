@@ -56,7 +56,11 @@ module Minion
   # @raise [ RuntimeError ] If the name is nil or empty.
   def enqueue(name, data = nil)
     raise "Cannot enqueue an empty or nil name" if name.nil? || name.empty?
-    encoded = JSON.dump(data || {})
+
+    # @todo: Durran: Any multi-byte character in the JSON causes a bad_payload
+    #   error on the rabbitmq side. It seems a fix in the old amqp gem
+    #   regressed in the new fork.
+    encoded = JSON.dump(data || {}).force_encoding("ISO-8859-1")
 
     [ name ].flatten.each do |queue|
       Minion.info("Send: #{queue}:#{encoded}")
