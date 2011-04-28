@@ -10,6 +10,7 @@ module Minion
 
   @@handlers = []
   @@evented  = []
+  @@halt = false
   
   def url=(url)
     @@config_url = url
@@ -71,10 +72,11 @@ module Minion
 
   # run amqp poll and initializes subscriptions
   def run
+    return if @@halt
     log "Starting minion"
 
-    Signal.trap('INT') { AMQP.stop{ EM.stop } }
-    Signal.trap('TERM'){ AMQP.stop{ EM.stop } }
+    Signal.trap('INT', method(:halt))
+    Signal.trap('TERM', method(:halt))
 
     EM.run do
       AMQP.start(amqp_config) do |connection|
@@ -87,6 +89,10 @@ module Minion
     end
   end
 
+  def halt(*args)
+    @@halt = true
+    AMQP.stop{ EM.stop; exit }
+  end
   
   def amqp_url
     @@amqp_url ||= ENV["AMQP_URL"] || "amqp://guest:guest@localhost/"

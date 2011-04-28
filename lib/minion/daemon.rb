@@ -53,7 +53,7 @@ module Minion
     end
     
     def write_pid(number)
-      File.open(file_for(:pid, number), 'w') {|file| file.write(Process.pid())}
+      File.open(file_for(:pid, number), 'w') {|file| file.puts Process.pid }
     end
     
     def write_logs(number)
@@ -75,7 +75,7 @@ module Minion
       pidfile = file_for(:pid, number)
       
       if File.exist?(pidfile)
-        pid_to_kill = File.open(pidfile) {|f| f.read }
+        pid_to_kill = File.open(pidfile, 'r', &:read)
         
         Process.kill("HUP", pid_to_kill.to_i) rescue nil
       end

@@ -9,6 +9,8 @@ Minion::Daemon.pid = "./log/daemon.pid"
 
 Minion::Daemon.fork_or_skip
 
-puts "Daemon started"
+puts "Daemon started #{Process.pid}"
+
+Minion.run
 
 sleep 10_000
