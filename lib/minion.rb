@@ -1,5 +1,5 @@
 require 'uri'
-require 'json' unless defined? ActiveSupport::JSON
+require 'json' unless defined?(ActiveSupport::JSON) || defined?(JSON)
 require 'bunny'
 require 'amqp'
 require 'minion/handler'
