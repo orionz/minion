@@ -11,7 +11,7 @@ module Minion
 		@@config_url = url
 	end
 
-	def enqueue(jobs, data = {})
+	def enqueue(jobs, data = {}, headers = {})
 		raise "cannot enqueue a nil job" if jobs.nil?
 		raise "cannot enqueue an empty job" if jobs.empty?
 
@@ -25,7 +25,7 @@ module Minion
 
 		encoded = JSON.dump(data)
 		log "send: #{queue}:#{encoded}"
-		bunny.queue(queue, :durable => true, :auto_delete => false).publish(encoded)
+		bunny.queue(queue, :durable => true, :auto_delete => false).publish(encoded, headers)
 	end
 
 	def log(msg)
