@@ -57,7 +57,7 @@ module Minion
 
 					args = decode_json(m)
 
-					result = yield(args)
+					result = yield(args,h)
 
 					next_job(args, result)
 				rescue Object => e
