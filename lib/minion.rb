@@ -65,7 +65,9 @@ module Minion
     [ name ].flatten.each do |queue|
       Minion.info("Send: #{queue}:#{encoded}")
       connect do |bunny|
-        bunny.queue(queue, durable: true, auto_delete: false).publish(encoded)
+        q = bunny.queue(queue, durable: true, auto_delete: false)
+        e = bunny.exchange('') # Connect to default exchange
+        e.publish(encoded, key: q.name) 
       end
     end
   end
