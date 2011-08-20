@@ -2,21 +2,21 @@ PATH
   remote: .
   specs:
     minion (0.2.0)
-      amqp (~> 0.7.1)
-      bunny (~> 0.6)
+      amqp (~> 0.7.4)
+      bunny (~> 0.7.4)
       json (>= 1.2.0)
 
 GEM
   remote: http://rubygems.org/
   specs:
-    amqp (0.7.1)
-      eventmachine (>= 0.12.4)
+    amqp (0.7.4)
+      eventmachine
     archive-tar-minitar (0.5.2)
-    bunny (0.6.0)
+    bunny (0.7.4)
     columnize (0.3.2)
     diff-lcs (1.1.2)
     eventmachine (0.12.10)
-    json (1.5.1)
+    json (1.5.3)
     linecache (0.43)
     linecache19 (0.5.12)
       ruby_core_source (>= 0.1.4)

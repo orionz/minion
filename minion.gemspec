@@ -25,8 +25,8 @@ Gem::Specification.new do |s|
   s.files = Dir.glob("lib/**/*") + %w(README.rdoc Rakefile)
   s.test_files = Dir.glob("spec/**/*") + Dir.glob("examples/*")
 
-  s.add_runtime_dependency("amqp", ["~> 0.7.1"])
-  s.add_runtime_dependency("bunny", ["~> 0.6"])
+  s.add_runtime_dependency("amqp", ["~> 0.7.4"])
+  s.add_runtime_dependency("bunny", ["~> 0.7.4"])
   s.add_runtime_dependency("json", [">= 1.2.0"])
 
   s.add_development_dependency("mocha", ["= 0.9.8"])
