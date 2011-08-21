@@ -77,7 +77,7 @@ module Minion
           rescue Object => e
             Minion.alert(e)
           end
-          h.ack if @ack
+          h.ack #if @ack # You can manually ack if you need
           Minion.execute_handlers
         end
         @running = true

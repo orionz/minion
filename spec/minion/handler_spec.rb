@@ -56,7 +56,7 @@ describe Minion::Handler do
     context "when the queue is not subscribable" do
 
       let(:handler) do
-        described_class.new("minion.test", ->{ true }, ->{ false })
+        described_class.new("minion.test", ->{ true }, :when => ->{ false })
       end
 
       before do
