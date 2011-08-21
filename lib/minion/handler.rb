@@ -69,7 +69,7 @@ module Minion
     def subscribe
       unless running?
         Minion.info("Subscribing to #{queue}")
-        AMQP::Channel.new.queue(queue, durable: true, auto_delete: false).subscribe(ack: true) do |h, m|
+        AMQP::Channel.new.queue(queue, :durable => true, :auto_delete => false).subscribe(:ack => true) do |h, m|
           return if AMQP.closing?
           begin
             Minion.info("Received: #{queue}:#{m}, #{h}")
@@ -100,7 +100,7 @@ module Minion
     #   handler.unsubscribe
     def unsubscribe
       Minion.info("Unsubscribing to #{queue}")
-      AMQP::Channel.new.queue(queue, durable: true, auto_delete: false).unsubscribe
+      AMQP::Channel.new.queue(queue, :durable => true, :auto_delete => false).unsubscribe
       @running = false
     end
   end

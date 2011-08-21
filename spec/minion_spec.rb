@@ -51,7 +51,7 @@ describe Minion do
   describe ".enqueue" do
 
     let(:queue) do
-      bunny.queue("minion.test", durable: true, auto_delete: false)
+      bunny.queue("minion.test", :durable => true, :auto_delete => false)
     end
 
     before do
@@ -142,15 +142,15 @@ describe Minion do
     context "when passed an array" do
 
       let(:first) do
-        bunny.queue("minion.first", durable: true, auto_delete: false)
+        bunny.queue("minion.first", :durable => true, :auto_delete => false)
       end
 
       let(:second) do
-        bunny.queue("minion.second", durable: true, auto_delete: false)
+        bunny.queue("minion.second", :durable => true, :auto_delete => false)
       end
 
       let(:third) do
-        bunny.queue("minion.third", durable: true, auto_delete: false)
+        bunny.queue("minion.third", :durable => true, :auto_delete => false)
       end
 
       before do

@@ -30,7 +30,7 @@ describe Minion::Handler do
 
         before do
           channel.expects(:queue).with(
-            "minion.test", durable: true, auto_delete: false
+            "minion.test", :durable => true, :auto_delete => false
           ).returns(queue)
         end
 
@@ -61,7 +61,7 @@ describe Minion::Handler do
 
       before do
         channel.expects(:queue).with(
-          "minion.test", durable: true, auto_delete: false
+          "minion.test", :durable => true, :auto_delete => false
         ).returns(queue)
       end
 

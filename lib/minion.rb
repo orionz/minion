@@ -31,11 +31,11 @@ module Minion
   def config
     uri = URI.parse(url)
     {
-      vhost: uri.path,
-      host: uri.host,
-      user: uri.user,
-      port: (uri.port || 5672),
-      pass: uri.password
+      :vhost => uri.path,
+      :host => uri.host,
+      :user => uri.user,
+      :port => (uri.port || 5672),
+      :pass => uri.password
     }
   rescue Object => e
     raise("invalid AMQP_URL: #{uri.inspect} (#{e})")
@@ -65,9 +65,9 @@ module Minion
     [ name ].flatten.each do |queue|
       Minion.info("Send: #{queue}:#{encoded}")
       connect do |bunny|
-        q = bunny.queue(queue, durable: true, auto_delete: false)
+        q = bunny.queue(queue, :durable => true, :auto_delete => false)
         e = bunny.exchange('') # Connect to default exchange
-        e.publish(encoded, key: q.name) 
+        e.publish(encoded, :key => q.name) 
       end
     end
   end
