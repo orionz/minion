@@ -68,8 +68,8 @@ module Minion
         AMQP::Channel.new.queue(queue, durable: true, auto_delete: false).subscribe(ack: true) do |h, m|
           return if AMQP.closing?
           begin
-            Minion.info("Received: #{queue}:#{m}")
-            block.call(decode(m))
+            Minion.info("Received: #{queue}:#{m}, #{h}")
+            block.call(decode(m), h)
           rescue Object => e
             Minion.alert(e)
           end
