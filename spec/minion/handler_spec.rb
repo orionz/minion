@@ -23,7 +23,7 @@ describe Minion::Handler do
     context "when the queue is subscribable" do
 
       let(:handler) do
-        described_class.new("minion.test", ->{ true })
+        described_class.new("minion.test", lambda{ true })
       end
 
       context "when the handler is not already running" do
@@ -56,7 +56,7 @@ describe Minion::Handler do
     context "when the queue is not subscribable" do
 
       let(:handler) do
-        described_class.new("minion.test", ->{ true }, :when => ->{ false })
+        described_class.new("minion.test", lambda{ true }, :when => lambda{ false })
       end
 
       before do

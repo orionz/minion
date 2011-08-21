@@ -217,7 +217,7 @@ describe Minion do
   describe ".error" do
 
     let(:block) do
-      -> { "testing" }
+      lambda{ "testing" }
     end
 
     before do
@@ -232,7 +232,7 @@ describe Minion do
   describe ".info" do
 
     let(:block) do
-      ->(message) { message }
+      lambda(message) { message }
     end
 
     before do

@@ -205,7 +205,7 @@ module Minion
   #
   # @return [ lambda ] The logger.
   def logging
-    @@logging ||= ->(msg) { puts("#{Time.now} :minion: #{msg}") }
+    @@logging ||= lambda(msg) { puts("#{Time.now} :minion: #{msg}") }
   end
 end
 
