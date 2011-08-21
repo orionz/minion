@@ -19,9 +19,13 @@ module Minion
     #   Handler.new("minion.test")
     #
     # @param [ String ] queue The name of the queue.
-    # @param [ lambda ] subscribable The block for conditionally subscribing.
-    def initialize(queue, block, subscribable = nil)
-      @queue, @block, @subscribable = queue, block, subscribable
+    # @param [ Hash ] 
+    # @option options [ lambda ] :when The block for conditionally subscribing.
+    # @option options [ boolean ] :ack Should we automatically ack the message?
+    def initialize(queue, block, options = {})
+      @queue, @block = queue, block
+      @subscribable = options[:when]
+      @ack = ! (options[:ack] == false) # Ack is either true or nil
     end
 
     private
@@ -73,7 +77,7 @@ module Minion
           rescue Object => e
             Minion.alert(e)
           end
-          h.ack
+          h.ack if @ack
           Minion.execute_handlers
         end
         @running = true
