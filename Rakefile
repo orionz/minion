@@ -1,24 +1,30 @@
-require 'jeweler'
+require "bundler"
+Bundler.setup
 
-Jeweler::Tasks.new do |s|
-  s.name = "minion"
-  s.description = "Super simple job queue over AMQP"
-  s.summary = s.description
-  s.author = "Orion Henry"
-  s.email = "orion@heroku.com"
-  s.homepage = "http://github.com/orionz/minion"
-  s.rubyforge_project = "minion"
-  s.files = FileList["[A-Z]*", "{bin,lib,spec}/**/*"]
-  s.add_dependency "amqp", ">= 0.6.7"
-  s.add_dependency "bunny", ">= 0.6.0"
-  s.add_dependency "json", ">= 1.2.0"
+require "rake"
+require "rake/rdoctask"
+require "rspec"
+require "rspec/core/rake_task"
+
+$LOAD_PATH.unshift File.expand_path("../lib", __FILE__)
+require "minion/version"
+
+task :build do
+  system "gem build minion.gemspec"
 end
 
-Jeweler::RubyforgeTasks.new
+task :install => :build do
+  system "sudo gem install minion-#{Minion::VERSION}.gem"
+end
 
-desc 'Run specs'
-task :spec do
-  sh 'bacon -s spec/*_spec.rb'
+task :release => :build do
+  system "git tag -a #{Minion::VERSION} -m 'Tagging #{Minion::VERSION}'"
+  system "git push --tags"
+  system "gem push mongoid-#{Minion::VERSION}.gem"
+end
+
+Rspec::Core::RakeTask.new(:spec) do |spec|
+  spec.pattern = "spec/**/*_spec.rb"
 end
 
 task :default => :spec

@@ -1,9 +1,9 @@
 
-= Minion: super simple job queue over amqp
+# Minion: super simple job queue over amqp #
 
 Minion makes processing jobs over AMQP simple and easy.
 
-== Setup
+## Setup ##
 
 Minion pulls the AMQP credentials out the environment via AMQP_URL.
 
@@ -11,12 +11,12 @@ Minion pulls the AMQP credentials out the environment via AMQP_URL.
 
 Alternativly you can explicitly set it programmatically like this:
 
-  Minion.amqp_url = "amqp://johndoe:abc123@localhost/my_vhost"
+	Minion.amqp_url = "amqp://johndoe:abc123@localhost/my_vhost"
 
 If no URL is supplied, Minion defaults to "amqp://guest:guest@localhost/" which
 is the default credentials for Rabbitmq running locally.
 
-== Principles
+## Principles ##
 
 Minion treats your jobs with respect.  The queues are durable and not
 autodelete.  When popping jobs off the queue, they will not receive an ack
@@ -32,7 +32,7 @@ eventmachine.
 Message processing is done one at a time (prefetch 1).  If you want tasks done
 in parallel, run two minions.
 
-== Push a job onto the queue
+## Push a job onto the queue ##
 
 Its easy to push a job onto the queue.
 
@@ -41,7 +41,7 @@ Its easy to push a job onto the queue.
 Minion expects a queue name (and will create it if needed). The second argument
 needs to be a hash.  
 
-== Processing a job
+## Processing a job ##
 
 	require 'minion'
 
@@ -51,7 +51,7 @@ needs to be a hash.
 		Sandwich.make(args["for"],args["with"])
 	end
 
-== Chaining multiple steps
+## Chaining multiple steps ##
 
 If you have a task that requires more than one step just pass an array of
 queues when you enqueue.
@@ -59,26 +59,53 @@ queues when you enqueue.
 	Minion.enqueue([ "make.sandwich", "eat.sandwich" ], "for" => "me")
 
 	job "make.sandwich" do
-		## this return value is merged with for => me and sent to the next queue
+		# this return value is merged with for => me and sent to the next queue
 		{ "type" => "ham on rye" }  
 	end
 
-	job "eat.sandwich" do |args|
-		puts "I have #{args["type"]} sandwich for #{args["me"]}"
+	job "eat.sandwich" do |msg|
+		puts "I have #{msg.content["type"]} sandwich for #{msg.content["me"]}"
 	end
 
-== Conditional Processing
+## Conditional Processing ##
 
 If you want a minion worker to only subscribe to a queue under specific
 conditions there is a :when parameter that takes a lambda as an argument.  For
 example, if you had a queue that makes sandwiches but only if there is bread
 on hand, it would be.
 
-  job "make.sandwich", :when => lambda { not Bread.out? } do
-    Sandwich.make
-  end
+	job "make.sandwich", :when => lambda { not Bread.out? } do
+		Sandwich.make
+	end
 
-== Error handling
+## Batch Processing ##
+
+If you want a minion worker to subscribe to a queue and batch messages together
+you can use the "batch" options.  This will group messages into groups of
+"batch_size" unless there are too few messages available.
+
+	job "make.sandwich", :batch_size => 5 do |msg|
+		Sandwich.make_a_bunch msg.batch
+	end
+
+If you want your worker to wait until the exact batch_size is reached, then tell
+it so:
+
+	job "make.sandwich", :batch_size => 5, :wait => true do |msg|
+		Sandwich.make_a_bunch msg.batch
+	end
+
+That'll wait indefinitely, but maybe you'll give up after a bit.  Just tell it
+how many seconds:
+
+	job "make.sandwich", :batch_size => 5, :wait => 5 do |msg|
+		Sandwich.make_a_bunch msg.batch
+	end
+
+This is especially helpful since any short delay can create some weird batch sizes.
+See the examples for more information.
+
+## Error handling ##
 
 When an error is thrown in a job handler, the job is requeued to be done later
 and the minion process exits.  If you define an error handler, however, the
@@ -88,7 +115,7 @@ error handler is run and the job is removed from the queue.
 		puts "got an error! #{e}"
 	end
 
-== Logging
+## Logging ##
 
 Minion logs to stdout via "puts".  You can specify a custom logger like this:
 
@@ -96,7 +123,12 @@ Minion logs to stdout via "puts".  You can specify a custom logger like this:
 		puts msg
 	end
 
-== Meta
+## Testing ##
+
+When running the Minion test suite you will need to have a RabbitMQ instance
+running locally with the default admin user "guest" still intact.
+
+## Meta ##
 
 Created by Orion Henry
 
