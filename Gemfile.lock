@@ -2,6 +2,7 @@ PATH
   remote: .
   specs:
     minion (0.2.0)
+      activesupport (>= 3.1)
       amqp (~> 0.7.4)
       bunny (~> 0.7.4)
       json (>= 1.2.0)
@@ -9,10 +10,12 @@ PATH
 GEM
   remote: http://rubygems.org/
   specs:
+    activesupport (3.1.1)
+      multi_json (~> 1.0)
     amqp (0.7.4)
       eventmachine
     archive-tar-minitar (0.5.2)
-    bunny (0.7.4)
+    bunny (0.7.5)
     columnize (0.3.2)
     diff-lcs (1.1.2)
     eventmachine (0.12.10)
@@ -22,6 +25,7 @@ GEM
       ruby_core_source (>= 0.1.4)
     mocha (0.9.8)
       rake
+    multi_json (1.0.3)
     rake (0.8.7)
     rspec (2.5.0)
       rspec-core (~> 2.5.0)

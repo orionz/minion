@@ -28,6 +28,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency("amqp", ["~> 0.7.4"])
   s.add_runtime_dependency("bunny", ["~> 0.7.4"])
   s.add_runtime_dependency("json", [">= 1.2.0"])
+  s.add_runtime_dependency("activesupport", [">= 3.1"])
 
   s.add_development_dependency("mocha", ["= 0.9.8"])
   s.add_development_dependency("rspec", ["~> 2.4"])
