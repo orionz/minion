@@ -1,9 +1,10 @@
 #!/usr/bin/env ruby
 
 #
-# This example illustrates the use of the :when
-# parameter to allow/disallow subscription to the
-# queue
+# This example illustrates the use of batching
+# messages together.  This way work can be
+# distributed in small chunks, but worked on
+# in larger groups
 #
 
 $:.unshift File.dirname(__FILE__) + '/../lib'
@@ -22,13 +23,9 @@ logger do |msg|
 	puts "--> #{msg}"
 end
 
-$listen = true
 
-job "do.once", :when => lambda { $listen } do |args|
-	puts "Do this one action - then unsubscribe..."
-	$listen = false
+job "do.many", :batch_size => 10 do |msg|
+	puts "got #{msg.batch.size} messages"
 end
 
-enqueue("do.once",[])
-enqueue("do.once",[])
-
+27.times{ Minion.enqueue 'do.many', {"something" => true} }

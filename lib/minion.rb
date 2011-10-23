@@ -5,6 +5,8 @@ require "json" unless defined? ActiveSupport::JSON
 require "uri"
 require "minion/handler"
 require "minion/version"
+require "minion/message"
+require "ext/string"
 
 module Minion
   extend self
@@ -31,17 +33,17 @@ module Minion
   def config
     uri = URI.parse(url)
     {
-      vhost: uri.path,
-      host: uri.host,
-      user: uri.user,
-      port: (uri.port || 5672),
-      pass: uri.password
+      :vhost => uri.path,
+      :host => uri.host,
+      :user => uri.user,
+      :port => (uri.port || 5672),
+      :pass => uri.password
     }
   rescue Object => e
     raise("invalid AMQP_URL: #{uri.inspect} (#{e})")
   end
 
-  # Add data to the supplied queue or queues. The hash will get converted to
+  # Add content to the supplied queue or queues. The hash will get converted to
   # JSON and placed on the queue as the JSON string.
   #
   # @example Place data on a single queue.
@@ -54,19 +56,39 @@ module Minion
   # @param [ Hash ] data The payload to send.
   #
   # @raise [ RuntimeError ] If the name is nil or empty.
-  def enqueue(name, data = nil)
-    raise "Cannot enqueue an empty or nil name" if name.nil? || name.empty?
-
+  def enqueue(queues, data = {})
+    raise "Cannot enqueue an empty or nil name" if queues.nil? || queues.empty?
+    # Wrap raw data when we receive it
+    data = {'content' => data} unless data.class == Hash && data['content']
+    if queues.respond_to? :shift
+      queue = queues.shift
+      data['callbacks'] = queues
+    else
+      queue = queues
+    end
+    
     # @todo: Durran: Any multi-byte character in the JSON causes a bad_payload
     #   error on the rabbitmq side. It seems a fix in the old amqp gem
     #   regressed in the new fork.
-    encoded = JSON.dump(data || {}).force_encoding("ISO-8859-1")
-
-    [ name ].flatten.each do |queue|
-      Minion.info("Send: #{queue}:#{encoded}")
-      connect do |bunny|
-        bunny.queue(queue, durable: true, auto_delete: false).publish(encoded)
-      end
+    encoded = JSON.dump(data).force_encoding("ISO-8859-1")
+    
+    Minion.info("Send: #{queue}:#{encoded}")
+    connect do |bunny|
+      q = bunny.queue(queue, :durable => true, :auto_delete => false)
+      e = bunny.exchange('') # Connect to default exchange
+      e.publish(encoded, :key => q.name) 
+    end
+  end
+    
+  # Get the message count for a specific queue
+  #
+  # @example Get the message count for queue 'minion.test'.
+  #   Minion.message_count('minion.test')
+  #
+  # @return [ Fixnum ] the number of messages
+  def message_count(queue)
+    connect do |bunny|
+      return bunny.queue(queue, :durable => true, :auto_delete => false).message_count
     end
   end
 
@@ -111,8 +133,9 @@ module Minion
   # @param [ Hash ] options Options for the subscriber.
   #
   # @option options [ lambda ] :when Conditionally process the job.
+  # @option options [ boolean ] :ack Should we automatically ack the message?
   def job(queue, options = {}, &block)
-    Minion::Handler.new(queue, block, options[:when]).tap do |handler|
+    Minion::Handler.new(queue, block, options).tap do |handler|
       @@handlers ||= []
       at_exit { Minion.run } if @@handlers.size == 0
       @@handlers << handler
@@ -167,7 +190,7 @@ module Minion
   def url=(url)
     @@url = url
   end
-
+  
   private
 
   # Get the bunny instance which is used for the synchronous communication.
@@ -202,7 +225,7 @@ module Minion
   #
   # @return [ lambda ] The logger.
   def logging
-    @@logging ||= ->(msg) { puts("#{Time.now} :minion: #{msg}") }
+    @@logging ||= lambda { |msg| puts("#{Time.now} :minion: #{msg}") }
   end
 end
 

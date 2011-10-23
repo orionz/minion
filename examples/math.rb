@@ -1,5 +1,11 @@
 #!/usr/bin/env ruby
 
+#
+# This example illustrates the use of chaining
+# callbacks to create building blocks with the
+# message content being just an integer
+#
+
 $:.unshift File.dirname(__FILE__) + '/../lib'
 require 'rubygems'
 require 'minion'
@@ -16,21 +22,21 @@ logger do |msg|
 	puts "--> #{msg}"
 end
 
-job "math.incr" do |args|
-	{ "number" => (1 + args["number"].to_i) }
+job "math.incr" do |msg|
+	msg.content.to_i + 1
 end
 
-job "math.double" do |args|
-	{ "number" => (2 * args["number"].to_i) }
+job "math.double" do |msg|
+	msg.content.to_i * 2
 end
 
-job "math.square" do |args|
-	{ "number" => (args["number"].to_i * args["number"].to_i) }
+job "math.square" do |msg|
+	msg.content.to_i * msg.content.to_i
 end
 
-job "math.print" do |args|
-	puts "NUMBER -----> #{args["number"]}"
+job "math.print" do |msg|
+	puts "NUMBER -----> #{msg.content}"
 end
 
-enqueue([ "math.incr", "math.double", "math.square", "math.incr", "math.double", "math.print" ], { :number => 3 })
+enqueue([ "math.incr", "math.double", "math.square", "math.incr", "math.double", "math.print" ], 3)
 

@@ -51,7 +51,7 @@ describe Minion do
   describe ".enqueue" do
 
     let(:queue) do
-      bunny.queue("minion.test", durable: true, auto_delete: false)
+      bunny.queue("minion.test", :durable => true, :auto_delete => false)
     end
 
     before do
@@ -71,7 +71,7 @@ describe Minion do
         end
 
         it "adds empty json to the queue" do
-          message.should == {}
+          message.should == {"content" => {}}
         end
       end
 
@@ -86,7 +86,7 @@ describe Minion do
         end
 
         it "adds empty json to the queue" do
-          message.should == {}
+          message.should == {"content" => nil}
         end
       end
 
@@ -95,7 +95,7 @@ describe Minion do
         context "when the data has no special characters" do
 
           let(:data) do
-            { "field" => "value" }
+            {"content"=>{"field"=>"value"}}
           end
 
           before do
@@ -114,7 +114,7 @@ describe Minion do
         context "when the data contains special characters" do
 
           let(:data) do
-            { "field" => "öüäßÖÜÄ" }
+            {"content"=>{"field"=>"öüäßÖÜÄ"}}
           end
 
           before do
@@ -142,21 +142,11 @@ describe Minion do
     context "when passed an array" do
 
       let(:first) do
-        bunny.queue("minion.first", durable: true, auto_delete: false)
-      end
-
-      let(:second) do
-        bunny.queue("minion.second", durable: true, auto_delete: false)
-      end
-
-      let(:third) do
-        bunny.queue("minion.third", durable: true, auto_delete: false)
+        bunny.queue("minion.first", :durable => true, :auto_delete => false)
       end
 
       before do
         first.purge
-        second.purge
-        third.purge
       end
 
       context "when the array is empty" do
@@ -169,35 +159,37 @@ describe Minion do
       context "when the array has queue names" do
 
         let(:data) do
-          { "field" => "value" }
+          {"field"=>"value"}
+        end
+        
+        let(:serialized) do
+          {"content"=>{"field"=>"value"}, "callbacks"=>["minion.second", "minion.third"]}
         end
 
         before do
           Minion.enqueue([ "minion.first", "minion.second", "minion.third" ], data)
         end
 
-        let(:first_message) do
+        let(:message) do
           JSON.parse(first.pop[:payload])
         end
 
-        let(:second_message) do
-          JSON.parse(second.pop[:payload])
+        it "adds the serialized data to the first queue" do
+          message.should == serialized
         end
-
-        let(:third_message) do
-          JSON.parse(third.pop[:payload])
-        end
-
-        it "adds the data to the first queue" do
-          first_message.should == data
-        end
-
-        it "adds the data to the second queue" do
-          second_message.should == data
-        end
-
-        it "adds the data to the third queue" do
-          third_message.should == data
+        
+        context "when the data has already been serialized" do
+          before do
+            Minion.enqueue([ "minion.first", "minion.second", "minion.third" ], serialized)
+          end
+          
+          let(:message) do
+            JSON.parse(first.pop[:payload])
+          end
+          
+          it "adds has the same serialized data in the first queue" do
+            message.should == serialized
+          end
         end
       end
     end
@@ -217,7 +209,7 @@ describe Minion do
   describe ".error" do
 
     let(:block) do
-      -> { "testing" }
+      lambda{ "testing" }
     end
 
     before do
@@ -232,7 +224,7 @@ describe Minion do
   describe ".info" do
 
     let(:block) do
-      ->(message) { message }
+      lambda{ |message| message }
     end
 
     before do
