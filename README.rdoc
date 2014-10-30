@@ -63,7 +63,7 @@ queues when you enqueue.
   end
 
   job "eat.sandwich" do |args|
-    puts "I have #{args["type"]} sandwich for #{args["me"]}"
+    puts "I have #{args["type"]} sandwich for #{args["for"]}"
   end
 
 == Conditional Processing
