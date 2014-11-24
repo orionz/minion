@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{minion}
-  s.version = "0.1.15"
+  s.version = "0.1.17"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Orion Henry"]
@@ -21,6 +21,7 @@ Gem::Specification.new do |s|
      "VERSION",
      "lib/minion.rb",
      "lib/minion/handler.rb",
+     "lib/minion/daemon.rb",
      "spec/base.rb",
      "spec/enqueue_spec.rb"
   ]
@@ -43,18 +44,15 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<amqp>, [">= 0.6.7"])
+      s.add_runtime_dependency(%q<amqp>, [">= 0.7.1"])
       s.add_runtime_dependency(%q<bunny>, [">= 0.6.0"])
-      s.add_runtime_dependency(%q<json>, [">= 1.2.0"])
     else
-      s.add_dependency(%q<amqp>, [">= 0.6.7"])
+      s.add_dependency(%q<amqp>, [">= 0.7.1"])
       s.add_dependency(%q<bunny>, [">= 0.6.0"])
-      s.add_dependency(%q<json>, [">= 1.2.0"])
     end
   else
-    s.add_dependency(%q<amqp>, [">= 0.6.7"])
+    s.add_dependency(%q<amqp>, [">= 0.7.1"])
     s.add_dependency(%q<bunny>, [">= 0.6.0"])
-    s.add_dependency(%q<json>, [">= 1.2.0"])
   end
 end
 

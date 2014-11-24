@@ -15,6 +15,40 @@ Alternativly you can explicitly set it programmatically like this:
 If no URL is supplied, Minion defaults to "amqp://guest:guest@localhost/" which
 is the default credentials for Rabbitmq running locally.
 
+== For Rails
+
+* add minion to Gemfile
+
+    gem 'minion', :git => "http://github.com/Paxa/minion.git"
+
+* Write script/minion like this
+
+    #!/usr/bin/env ruby
+
+    require File.expand_path(File.join(File.dirname(__FILE__), '..', 'config', 'environment'))
+
+    Minion::Daemon.log = "./log/daemon"
+    Minion::Daemon.pid = "./log/daemon.pid"
+
+    Minion::Daemon.fork_or_skip
+
+    Minion.error do |exception, queue, message, headers|
+    	warn "got an error processing queue #{queue}"
+    	warn exception.message
+    	warn exception.backtrace
+    end
+
+
+    Minion.logger do |msg|
+    	puts "--> #{msg}"
+    end
+
+    require "minion_jobs"
+  
+* Run on deploy like 
+
+    `cd #{latest_release} && RAILS_ENV=production ruby script/minion -d 5`
+
 == Principles
 
 Minion treats your jobs with respect.  The queues are durable and not
